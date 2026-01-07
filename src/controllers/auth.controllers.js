@@ -44,8 +44,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const { unhashedToken, hashedToken, tokenExpiry } = user.generateTemporaryToken();
 
-    user.emailVerficationToken = hashedToken;
-    user.emailVerificationTokenExpiry = tokenExpiry;
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationExpiry = tokenExpiry;
 
     await user.save({validateBeforeSave: false});
 
@@ -62,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
     const createdUser = await User.findById(user._id).select(
-      "-password -refreshToken -emailVerficationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry",
+      "-password -refreshToken -emailVerificationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry",
     );
 
     if(!createdUser){
@@ -96,7 +96,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accesstoken, refreshtoken } = await generateAllTokens(user._id)
 
     const loggedinUser = await User.findById(user._id).select(
-      "-password -refreshToken -emailVerficationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry",
+      "-password -refreshToken -emailVerificationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry",
     );
 
     const options = {
@@ -139,10 +139,22 @@ const verifyEmail = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Email verification token is missing', [])
   }
 
+  console.log("RAW PARAM TOKEN:", req.params.verificationToken);
+  console.log("RAW PARAM TOKEN LENGTH:", req.params.verificationToken?.length);
+
+
   let hashedToken = crypto.createHash("sha256").update(verificationToken).digest('hex');
 
+  console.log("HASHED TOKEN FROM URL:", hashedToken);
+
+  const debugUser = await User.findOne({});
+  console.log("TOKEN IN DB:", debugUser?.emailVerificationToken);
+  console.log("EXPIRY IN DB:", debugUser?.emailVerificationExpiry);
+  console.log("NOW:", Date.now());
+
+
   const user = await User.findOne({
-    emailVerficationToken: hashedToken,
+    emailVerificationToken: hashedToken,
     emailVerificationExpiry: {$gt: Date.now()}
   })
 
@@ -151,7 +163,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
   }
 
   user.isEmailVerified = true
-  user.emailVerficationToken = undefined;
+  user.emailVerificationToken = undefined;
   user.emailVerificationExpiry = undefined
   await user.save({validateBeforeSave: false})
 
@@ -173,7 +185,7 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
   const { unhashedToken, hashedToken, tokenExpiry } =
     user.generateTemporaryToken();
 
-  user.emailVerficationToken = hashedToken;
+  user.emailVerificationToken = hashedToken;
   user.emailVerificationTokenExpiry = tokenExpiry;
 
   await user.save({ validateBeforeSave: false });
