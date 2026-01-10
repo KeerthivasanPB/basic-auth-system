@@ -105,7 +105,7 @@ MAILTRAP_SMTP_PORT = 2525
 MAILTRAP_SMTP_USER = your_mailtrap_smtp_username
 MAILTRAP_SMTP_PASS = your_mailtrap_smtp_password
 
-FORGOT_PASSWORD_REDIRECT_URL = http://localhost:5000/forgotpassword
+FORGOT_PASSWORD_REDIRECT_URL = your_reset_password_url
 ```
 
 ---
